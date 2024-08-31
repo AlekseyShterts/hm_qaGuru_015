@@ -11,13 +11,12 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static io.qameta.allure.Allure.step;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static specs.CreateUserSpec.*;
-import static specs.LoginSpec.*;
-import static specs.UsersSpec.*;
+import static specs.RequestSpec.*;
+import static specs.ResponseSpec.*;
 import static utils.TestData.*;
 
 @Tag("regression")
-public class UsersTests extends UsersBaseTests {
+public class UsersTests extends BaseTests {
 
     @Test
     @DisplayName("Проверка ответа с информацией о юзере")
@@ -25,11 +24,11 @@ public class UsersTests extends UsersBaseTests {
     void checkUserInfoTest() {
 
         UserDataResponseModel response = step("Запрос информации о пользователе", () ->
-                given(singleUserRequestSpec)
+                given(defaultRequestSpec)
                         .when()
-                        .get("/2")
+                        .get("/users/2")
                         .then()
-                        .spec(singleUserResponseSpec)
+                        .spec(Response200Spec)
                         .extract().as(UserDataResponseModel.class));
 
         step("Проверка данных пользователя", () -> {
@@ -53,12 +52,12 @@ public class UsersTests extends UsersBaseTests {
     @Tag("smoke")
     void checkUserNotFoundWithBigIdTest() {
         step("Запрос информации о пользователе с несуществующим Id", () ->
-                given(singleUserRequestSpec)
+                given(defaultRequestSpec)
                         .when()
-                        .get("/256")
+                        .get("/users/256")
 
                         .then()
-                        .spec(user404ResponseSpec)
+                        .spec(Response404Spec)
                         .body(is(EMPTYBODY))
         );
     }
@@ -72,14 +71,14 @@ public class UsersTests extends UsersBaseTests {
         authData.setPassword("cityslicka");
 
         LoginResponseModel response = step("Ввод валидного логина и пароля", () ->
-                given(loginRequestSpec)
+                given(defaultRequestSpec)
                         .body(authData)
 
                         .when()
-                        .post()
+                        .post("/login")
 
                         .then()
-                        .spec(loginResponseSpec)
+                        .spec(Response200Spec)
                         .extract().as(LoginResponseModel.class));
 
         step("Проверяем, что значение токена не пустое", () ->
@@ -94,14 +93,14 @@ public class UsersTests extends UsersBaseTests {
         authData.setEmail("eve.holt@reqres.in");
 
         LoginWithOutPasswordResponseModel response = step("Ввод email без пароля", () ->
-                given(loginRequestSpec)
+                given(defaultRequestSpec)
                         .body(authData)
 
                         .when()
-                        .post()
+                        .post("/login")
 
                         .then()
-                        .spec(loginWithOutPasswordSpec)
+                        .spec(Response400Spec)
                         .extract().as(LoginWithOutPasswordResponseModel.class));
 
         step("Проверяем получение сообщения об ошибке - отсутствие пароля", () ->
@@ -117,12 +116,12 @@ public class UsersTests extends UsersBaseTests {
         authData.setJob("killer");
 
         CreateUserResponseModel response = step("Ввод имени и работы пользователя", () ->
-                given(createUserRequestSpec)
+                given(defaultRequestSpec)
                         .body(authData)
                         .when()
-                        .post()
+                        .post("/users")
                         .then()
-                        .spec(createUserResponseSpec)
+                        .spec(Response201Spec)
                         .extract().as(CreateUserResponseModel.class));
 
         step("Проверка имени созданного пользователя", () ->
